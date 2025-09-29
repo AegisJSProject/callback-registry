@@ -9,6 +9,9 @@ const $$ = (selector, base = document) => base.querySelectorAll(selector);
 
 const $ = (selector, base = document) => base.querySelector(selector);
 
+export const requestFullscreen = { attr: 'data-request-fullscreen-selector', data: 'requestFullscreenSelector' };
+export const toggleFullsceen = { attr: 'data-toggle-fullscreen-selector', data: 'toggleFullscreenSelector' };
+
 export const FUNCS = {
 	debug: {
 		log: 'aegis:debug:log',
@@ -25,6 +28,7 @@ export const FUNCS = {
 		popup: 'aegis:navigate:popup',
 	},
 	ui: {
+		command: 'aegis:ui:command',
 		print: 'aegis:ui:print',
 		remove: 'aegis:ui:remove',
 		hide: 'aegis:ui:hide',
@@ -40,6 +44,11 @@ export const FUNCS = {
 		prevent: 'aegis:ui:prevent',
 		revokeObjectURL: 'aegis:ui:revokeObjectURL',
 		cancelAnimationFrame: 'aegis:ui:cancelAnimationFrame',
+		requestFullscreen: 'aegis:ui:requestFullscreen',
+		toggleFullscreen: 'aegis:ui:toggleFullsceen',
+		exitFullsceen: 'aegis:ui:exitFullscreen',
+		open: 'aegis:ui:open',
+		close: 'aegis:ui:close',
 		abortController: 'aegis:ui:controller:abort',
 	},
 };
@@ -96,6 +105,8 @@ const registry = new Map([
 	[FUNCS.ui.clearInterval, ({ currentTarget }) => clearInterval(parseInt(currentTarget.dataset.clearInterval))],
 	[FUNCS.ui.clearTimeout, ({ currentTarget }) => clearTimeout(parseInt(currentTarget.dataset.timeout))],
 	[FUNCS.ui.abortController, ({ currentTarget }) => abortController(currentTarget.dataset.aegisEventController, currentTarget.dataset.aegisControllerReason)],
+	[FUNCS.ui.open, ({ currentTarget }) => document.querySelector(currentTarget.dataset.openSelector).open = true],
+	[FUNCS.ui.close, ({ currentTarget }) => document.querySelector(currentTarget.dataset.closeSelector).open = false],
 	[FUNCS.ui.showModal, ({ currentTarget }) => {
 		const target = $(currentTarget.dataset.showModalSelector);
 
@@ -133,6 +144,25 @@ const registry = new Map([
 	}],
 	[FUNCS.ui.print, () => globalThis.print()],
 	[FUNCS.ui.prevent, event => event.preventDefault()],
+	[FUNCS.ui.requestFullscreen, ({ currentTarget}) => {
+		if (currentTarget.dataset.hasOwnProperty(requestFullscreen.data)) {
+			document.getElementById(currentTarget.dataset[requestFullscreen.data]).requestFullscreen();
+		} else {
+			currentTarget.requestFullscreen();
+		}
+	}],
+	[FUNCS.ui.toggleFullscreen, ({ currentTarget }) => {
+		const target = currentTarget.dataset.hasOwnProperty(toggleFullsceen.data)
+			? document.getElementById(currentTarget.dataset[toggleFullsceen.data])
+			: currentTarget;
+
+		if (target.isSameNode(document.fullscreenElement)) {
+			document.exitFullscreen();
+		} else {
+			target.requestFullscreen();
+		}
+	}],
+	[FUNCS.ui.exitFullsceen, () => document.exitFullscreen()],
 ]);
 
 /**

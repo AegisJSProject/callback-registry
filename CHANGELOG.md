@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.3] - 2025-09-29
+
+### Added
+- Add `onCommand` to handle `CommandEvent`s
+- Add `FUNCS.ui.open` and `FUNCS.ui.close` for `<details>` elements
+- Add `FUNCS.ui.reques*tFullscreen` for requesting, exiting, and toggling fullscreen
+
 ## [v1.0.2] - 2024-11-22
 
 ### Added

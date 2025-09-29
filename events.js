@@ -27,6 +27,7 @@ export const onCanplaythrough = EVENT_PREFIX + 'canplaythrough';
 export const onChange = EVENT_PREFIX + 'change';
 export const onClick = EVENT_PREFIX + 'click';
 export const onClose = EVENT_PREFIX + 'close';
+export const onCommand = EVENT_PREFIX + 'command';
 export const onContextmenu = EVENT_PREFIX + 'contextmenu';
 export const onCopy = EVENT_PREFIX + 'copy';
 export const onCuechange = EVENT_PREFIX + 'cuechange';
@@ -124,6 +125,7 @@ export const eventAttrs = [
 	onChange,
 	onClick,
 	onClose,
+	onCommand,
 	onContextmenu,
 	onCopy,
 	onCuechange,
@@ -293,6 +295,7 @@ export const EVENTS = {
 	onChange,
 	onClick,
 	onClose,
+	onCommand,
 	onContextmenu,
 	onCopy,
 	onCuechange,

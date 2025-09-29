@@ -1,6 +1,6 @@
 {
   "name": "@aegisjsproject/callback-registry",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": " A callback registry for AegisJSProject",
   "keywords": [
     "aegis",
@@ -78,6 +78,7 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@shgysk8zer0/eslint-config": "^1.0.1",
+    "@shgysk8zer0/polyfills": "^0.4.13",
     "eslint": "^9.15.0",
     "http-server": "^14.1.1",
     "rollup": "^4.27.2"
