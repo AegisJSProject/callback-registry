@@ -53,6 +53,9 @@ export const FUNCS = {
 	},
 };
 
+/**
+ * @type {Map<string, function>}
+ */
 const registry = new Map([
 	[FUNCS.debug.log, console.log],
 	[FUNCS.debug.warn, console.warn],
@@ -165,6 +168,12 @@ const registry = new Map([
 	[FUNCS.ui.exitFullsceen, () => document.exitFullscreen()],
 ]);
 
+export class CallbackRegistryKey extends String {
+	[Symbol.dispose]() {
+		registry.delete(this.toString());
+	}
+}
+
 /**
  * Check if callback registry is open
  *
@@ -189,26 +198,26 @@ export const listCallbacks = () => Object.freeze(Array.from(registry.keys()));
 /**
  * Check if a callback is registered
  *
- * @param {string} name The name/key to check for in callback registry
+ * @param {CallbackRegistryKey|string} name The name/key to check for in callback registry
  * @returns {boolean} Whether or not a callback is registered
  */
-export const hasCallback = name => registry.has(name);
+export const hasCallback = name => registry.has(name?.toString());
 
 /**
  * Get a callback from the registry by name/key
  *
- * @param {string} name The name/key of the callback to get
+ * @param {CallbackRegistryKey|string} name The name/key of the callback to get
  * @returns {Function|undefined} The corresponding function registered under that name/key
  */
-export const getCallback = name => registry.get(name);
+export const getCallback = name => registry.get(name?.toString());
 
 /**
  *	 Remove a callback from the registry
  *
- * @param {string} name The name/key of the callback to get
+ * @param {CallbackRegistryKey|string} name The name/key of the callback to get
  * @returns {boolean} Whether or not the callback was successfully unregisterd
  */
-export const unregisterCallback = name => _isRegistrationOpen && registry.delete(name);
+export const unregisterCallback = name => _isRegistrationOpen && registry.delete(name?.toString());
 
 /**
  * Remove all callbacks from the registry
@@ -221,21 +230,23 @@ export const clearRegistry = () => registry.clear();
  * Create a registered callback with a randomly generated name
  *
  * @param {Function} callback Callback function to register
+ * @param {object} [config]
+ * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
  * @returns {string} The automatically generated key/name of the registered callback
  */
-export const createCallback = (callback) => registerCallback('aegis:callback:' + crypto.randomUUID(), callback);
+export const createCallback = (callback, { stack } = {}) => registerCallback('aegis:callback:' + crypto.randomUUID(), callback, { stack });
 
 /**
  * Call a callback fromt the registry by name/key
  *
- * @param {string} name The name/key of the registered function
+ * @param {CallbackRegistryKey|string} name The name/key of the registered function
  * @param  {...any} args Any arguments to pass along to the function
  * @returns {any} Whatever the return value of the function is
  * @throws {Error} Throws if callback is not found or any error resulting from calling the function
  */
 export function callCallback(name, ...args) {
-	if (registry.has(name)) {
-		return registry.get(name).apply(this || globalThis, args);
+	if (registry.has(name?.toString())) {
+		return registry.get(name?.toString()).apply(this || globalThis, args);
 	} else {
 		throw new Error(`No ${name} function registered.`);
 	}
@@ -244,22 +255,33 @@ export function callCallback(name, ...args) {
 /**
  * Register a named callback in registry
  *
- * @param {string} name The name/key to register the callback under
+ * @param {CallbackRegistryKey|string} name The name/key to register the callback under
  * @param {Function} callback The callback value to register
+ * @param {object} config
+ * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
  * @returns {string} The registered name/key
  */
-export function registerCallback(name, callback) {
-	if (typeof name !==  'string' || name.length === 0) {
-		throw new TypeError('Callback name must be a string.');
+export function registerCallback(name, callback, { stack } = {}) {
+	if (typeof name === 'string') {
+		return registerCallback(new CallbackRegistryKey(name), callback, { stack });
+	}else if (! (name instanceof CallbackRegistryKey)) {
+		throw new TypeError('Callback name must be a disposable string/CallbackRegistryKey.');
 	} if (! (callback instanceof Function)) {
 		throw new TypeError('Callback must be a function.');
 	} else if (! _isRegistrationOpen) {
 		throw new TypeError('Cannot register new callbacks because registry is closed.');
-	} else if (registry.has(name)) {
+	} else if (registry.has(name?.toString())) {
 		throw new Error(`Handler "${name}" is already registered.`);
+	} else if (stack instanceof DisposableStack || stack instanceof AsyncDisposableStack) {
+		const key = stack.use(new CallbackRegistryKey(name));
+		registry.set(key.toString(), callback);
+
+		return key;
 	} else {
-		registry.set(name, callback);
-		return name;
+		const key = new CallbackRegistryKey(name);
+		registry.set(key.toString(), callback);
+
+		return key;
 	}
 }
 
@@ -283,10 +305,10 @@ export function getHost(target) {
 	}
 }
 
-export function on(event, callback, { capture = false, passive = false, once = false, signal } = {}) {
+export function on(event, callback, { capture = false, passive = false, once = false, signal, stack } = {}) {
 	if (callback instanceof Function) {
-		return on(event, createCallback(callback), { capture, passive, once, signal });
-	} else if (typeof callback !== 'string' || callback.length === 0) {
+		return on(event, createCallback(callback, { stack }), { capture, passive, once, signal });
+	} else if (! (callback instanceof String || typeof callback === 'string') || callback.length === 0) {
 		throw new TypeError('Callback must be a function or a registered callback string.');
 	} else if (typeof event !== 'string' || event.length === 0) {
 		throw new TypeError('Event must be a non-empty string.');
