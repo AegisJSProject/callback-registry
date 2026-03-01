@@ -41,6 +41,7 @@ const getSvg = () => new Blob([`
 	</svg>
 `], { type: 'image/svg+xml' });
 
+/* eslint-disable indent */
 document.body.append(html`
 	<nav id="nav" ${on('my:foo', ({
 		type, timeStamp, isTrusted,
@@ -108,7 +109,7 @@ document.body.append(html`
 		<button type="button" command="hide-popover" commandfor="popover">Hide Popover</button>
 	</div>
 `);
-
+/* eslint-enable indent */
 class DisposableAnimation extends Animation {
 	[Symbol.dispose]() {
 		this.cancel();
