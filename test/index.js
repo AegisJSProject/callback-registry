@@ -5,6 +5,7 @@ const controller = new AbortController();
 const signal = registerSignal(controller.signal);
 const animController = new AbortController();
 const animSignal = AbortSignal.any([controller.signal, animController.signal]);
+using stack = new DisposableStack();
 
 function html(strings, ...values) {
 	const template = document.createElement('template');
@@ -31,7 +32,7 @@ animSignal.addEventListener('abort', () => {
 
 function rotate(el = document.getElementById('container'), angle = 0, btn = document.getElementById('caf')) {
 	el.style.setProperty('transform', `rotate(${angle}deg)`);
-	btn.dataset.animationFrame = requestAnimationFrame(() => rotate(el, angle + 1), btn);
+	btn.dataset.animationFrame = requestAnimationFrame(() => rotate(el, angle + 1, btn), btn);
 }
 
 const getSvg = () => new Blob([`
@@ -72,7 +73,7 @@ document.body.append(html`
 		li.textContent = `${event.type} @ ${event.timeStamp}`;
 		document.getElementById('list').append(li);
 	}, { signal })}>Add to list</button>
-		<button type="button" ${on('click', () => controller.abort(), { signal })}>Abort</button>
+		<button type="button" id="abort-btn" ${on('click', () => controller.abort(), { signal, stack })}>Abort</button>
 		<button type="button" ${on('click', event => event.target.parentElement.dispatchEvent(new CustomEvent('my:foo', { detail: event })), { signal })}>Foo</button>
 	</nav>
 	<main id="main" ${onCommand}="${FUNCS.debug.log}">
@@ -108,6 +109,30 @@ document.body.append(html`
 	</div>
 `);
 
+class DisposableAnimation extends Animation {
+	[Symbol.dispose]() {
+		this.cancel();
+	}
+}
+
+using anim = new DisposableAnimation(new KeyframeEffect(
+	document.body,
+	[
+		{ transform: 'none' },
+		{ transform: 'rotate(1turn)' },
+	], {
+		duration: 800,
+		iterations: 3,
+		easing: 'ease-in-out',
+		fill: 'both',
+		direction: 'alternate',
+	}
+));
+
+anim.id = crypto.randomUUID(),
+anim.play();
 observeEvents(document.body);
 observeEvents(document.getElementById('container').shadowRoot.firstElementChild);
 rotate();
+
+await anim.finished;

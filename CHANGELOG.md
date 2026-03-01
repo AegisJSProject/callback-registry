@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.0.0] - 2026-03-01
+
+## Added
+- Add support for `DisposableStack` and `AsyncDisposableStack` disposal of keys
+
+### Changed
+- Creating and registering callbacks now returns an object with `[Symbol.dispose]` extending `String`
+
 ## [v1.0.3] - 2025-09-29
 
 ### Added
