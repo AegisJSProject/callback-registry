@@ -1,4 +1,5 @@
 import { hasCallback, getCallback } from './callbacks.js';
+import { Signal } from '@shgysk8zer0/signals';
 
 const PREFIX = 'data-aegis-event-';
 const EVENT_PREFIX = PREFIX + 'on-';
@@ -112,7 +113,7 @@ export const onWebkitanimationstart = EVENT_PREFIX + 'webkitanimationstart';
 export const onWebkittransitionend = EVENT_PREFIX + 'webkittransitionend';
 export const onError = EVENT_PREFIX + 'error';
 
-export const eventAttrs = [
+const eventAttrs = new Signal.State([
 	onAbort,
 	onBlur,
 	onFocus,
@@ -209,15 +210,15 @@ export const eventAttrs = [
 	onWebkitanimationstart,
 	onWebkittransitionend,
 	onError,
-];
+]);
 
-let selector = eventAttrs.map(attr => `[${CSS.escape(attr)}]`).join(', ');
+const selector = new Signal.Computed(() => eventAttrs.get().map(attr => `[${CSS.escape(attr)}]`).join(', '));
 
 const attrToProp = attr => `on${attr[EVENT_PREFIX_LENGTH].toUpperCase()}${attr.substring(EVENT_PREFIX_LENGTH + 1)}`;
 
 export const eventToProp = event => EVENT_PREFIX + event;
 
-export const hasEventAttribute = event => eventAttrs.includes(EVENT_PREFIX + event);
+export const hasEventAttribute = event => eventAttrs.get().includes(EVENT_PREFIX + event);
 
 const isEventDataAttr = ([name]) => name.startsWith(DATA_PREFIX);
 
@@ -400,13 +401,13 @@ export function registerEventAttribute(attr, {
 	signal,
 } = {}) {
 	const fullAttr = EVENT_PREFIX + attr.toLowerCase();
+	const attrs = eventAttrs.get();
 
-	if (! eventAttrs.includes(fullAttr)) {
+	if (! attrs.includes(fullAttr)) {
 		const sel = `[${CSS.escape(fullAttr)}]`;
 		const prop = attrToProp(fullAttr);
-		eventAttrs.push(fullAttr);
+		eventAttrs.set([...attrs, fullAttr]);
 		EVENTS[prop] = fullAttr;
-		selector += `, ${sel}`;
 
 		if (addListeners) {
 			requestAnimationFrame(() => {
@@ -556,9 +557,9 @@ export function unregisterSignal(signal) {
  * @returns {Element|Document} Returns the passed target node
  */
 export function attachListeners(target, { signal } = {}) {
-	const nodes = target instanceof Element && target.matches(selector)
-		? [target, ...target.querySelectorAll(selector)]
-		: target.querySelectorAll(selector);
+	const nodes = target instanceof Element && target.matches(selector.get())
+		? [target, ...target.querySelectorAll(selector.get())]
+		: target.querySelectorAll(selector.get());
 
 	nodes.forEach(el => _addListeners(el, { signal }));
 
@@ -578,7 +579,7 @@ export function observeEvents(root = document) {
 		childList:true,
 		attributes: true,
 		attributeOldValue: true,
-		attributeFilter: eventAttrs,
+		attributeFilter: eventAttrs.get(),
 	});
 }
 

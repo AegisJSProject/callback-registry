@@ -1,6 +1,6 @@
 {
   "name": "@aegisjsproject/callback-registry",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": " A callback registry for AegisJSProject",
   "keywords": [
     "aegis",
@@ -49,6 +49,7 @@
     "run:tests": "node --test *.test.js",
     "clean": "rm -f ./*.cjs",
     "build:js": "npm run clean && rollup -c rollup.config.js",
+    "update:importmap": "npx --package=@shgysk8zer0/importmap importmap-html test/index.html",
     "create:lock": "npm i --package-lock-only --ignore-scripts --no-audit --no-fund",
     "version:bump": "npm run version:bump:patch",
     "version:bump:patch": "npm version --no-git-tag-version patch && npm run create:lock",
@@ -78,9 +79,13 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
     "@shgysk8zer0/eslint-config": "^1.0.5",
-    "@shgysk8zer0/polyfills": "^0.6.0",
-    "eslint": "^10.0.0",
+    "@shgysk8zer0/polyfills": "^0.6.2",
+    "@shgysk8zer0/rollup-import": "^2.0.2",
+    "eslint": "^10.0.2",
     "http-server": "^14.1.1",
-    "rollup": "^4.27.2"
+    "rollup": "^4.59.0"
+  },
+  "dependencies": {
+    "@shgysk8zer0/signals": "^0.0.3"
   }
 }
