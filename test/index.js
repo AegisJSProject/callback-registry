@@ -1,5 +1,5 @@
-import { onClick, onClose, onCommand, observeEvents, onLoad, onError, registerSignal, signal as signalAttr, controller as controllerAttr, registerController, onDblclick } from '@aegisjsproject/callback-registry/events.js';
-import { createCallback, FUNCS, on, toggleFullsceen, requestFullscreen } from '@aegisjsproject/callback-registry/callbacks.js';
+import { onClick, onClose, onCommand, observeEvents, onLoad, onError, registerSignal, signal as signalAttr, controller as controllerAttr, registerController, onDblclick } from '/events.js';
+import { createCallback, registerCallback, FUNCS, on, toggleFullsceen, requestFullscreen, getCallback } from '/callbacks.js';
 
 const controller = new AbortController();
 const signal = registerSignal(controller.signal);
@@ -41,9 +41,13 @@ const getSvg = () => new Blob([`
 	</svg>
 `], { type: 'image/svg+xml' });
 
+const callback = registerCallback('handle:event', { handleEvent: event => console.log('handleEvent', event) });
+console.log(callback);
+setTimeout(() => console.log({ handleEvent: getCallback(callback) }), 5000);
+
 /* eslint-disable indent */
 document.body.append(html`
-	<nav id="nav" ${on('my:foo', ({
+	<nav id="nav" ${on('myfoo', ({
 		type, timeStamp, isTrusted,
 		detail: { type: dType, timeStamp: dtimeStamp, isTrusted: dIsTrusted, target: { tagName: target } } = {},
 	}) => {
@@ -57,6 +61,7 @@ document.body.append(html`
 		code.slot = 'events';
 		document.getElementById('container').append(code, ', ');
 	}, { signal })}">
+		<button type="button" ${onClick}="${callback}">Handle Event</button>
 		<button type="button" ${onClick}="${FUNCS.navigate.reload}" ${signalAttr}="${signal}">Reload</button>
 		<button type="button" ${onClick}="${FUNCS.navigate.close}" ${signalAttr}="${signal}">Close</button>
 		<button type="button" ${onClick}="${FUNCS.ui.print}" ${signalAttr}="${signal}">Print</button>
@@ -74,8 +79,8 @@ document.body.append(html`
 		li.textContent = `${event.type} @ ${event.timeStamp}`;
 		document.getElementById('list').append(li);
 	}, { signal })}>Add to list</button>
-		<button type="button" id="abort-btn" ${on('click', () => controller.abort(), { signal, stack })}>Abort</button>
-		<button type="button" ${on('click', event => event.target.parentElement.dispatchEvent(new CustomEvent('my:foo', { detail: event })), { signal })}>Foo</button>
+		<!--<button type="button" id="abort-btn" ${on('click', () => controller.abort(), { signal, stack })}>Abort</button>-->
+		<button type="button" ${on('click', event => event.target.parentElement.dispatchEvent(new CustomEvent('myfoo', { detail: event })), { signal })}>Foo</button>
 	</nav>
 	<main id="main" ${onCommand}="${FUNCS.debug.log}">
 		<div id="container" ${onDblclick}="${FUNCS.ui.requestFullscreen}">
