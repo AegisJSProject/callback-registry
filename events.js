@@ -212,9 +212,9 @@ const eventAttrs = new Signal.State([
 	onError,
 ]);
 
-const selector = new Signal.Computed(() => eventAttrs.get().map(attr => `[${CSS.escape(attr)}]`).join(', '));
 
 const attrToProp = attr => `on${attr[EVENT_PREFIX_LENGTH].toUpperCase()}${attr.substring(EVENT_PREFIX_LENGTH + 1)}`;
+const selector = new Signal.Computed(() => eventAttrs.get().map(attr => `[${CSS.escape(attr)}]`).join(','));
 
 export const eventToProp = event => EVENT_PREFIX + event;
 

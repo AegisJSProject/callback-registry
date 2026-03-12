@@ -44,6 +44,8 @@ export const FUNCS = {
 		prevent: 'aegis:ui:prevent',
 		revokeObjectURL: 'aegis:ui:revokeObjectURL',
 		cancelAnimationFrame: 'aegis:ui:cancelAnimationFrame',
+		clearInterval: 'aegis:clearInterval',
+		clearTimeout: 'aegis:clearTimeout',
 		requestFullscreen: 'aegis:ui:requestFullscreen',
 		toggleFullscreen: 'aegis:ui:toggleFullsceen',
 		exitFullsceen: 'aegis:ui:exitFullscreen',
@@ -232,7 +234,7 @@ export const clearRegistry = () => registry.clear();
  * @param {Function} callback Callback function to register
  * @param {object} [config]
  * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
- * @returns {string} The automatically generated key/name of the registered callback
+ * @returns {CallbackRegistryKey} The automatically generated key/name of the registered callback
  */
 export const createCallback = (callback, { stack } = {}) => registerCallback('aegis:callback:' + crypto.randomUUID(), callback, { stack });
 
@@ -259,14 +261,16 @@ export function callCallback(name, ...args) {
  * @param {Function} callback The callback value to register
  * @param {object} config
  * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
- * @returns {string} The registered name/key
+ * @returns {CallbackRegistryKey} The registered name/key
  */
 export function registerCallback(name, callback, { stack } = {}) {
 	if (typeof name === 'string') {
 		return registerCallback(new CallbackRegistryKey(name), callback, { stack });
-	}else if (! (name instanceof CallbackRegistryKey)) {
+	} else if (! (name instanceof CallbackRegistryKey)) {
 		throw new TypeError('Callback name must be a disposable string/CallbackRegistryKey.');
-	} if (! (callback instanceof Function)) {
+	} else if (typeof callback === 'object' && typeof callback.handleEvent === 'function') {
+		return registerCallback(name, callback.handleEvent.bind(callback), { stack });
+	} else if (! (typeof callback === 'function' || typeof callback?.handleEvent === 'function')) {
 		throw new TypeError('Callback must be a function.');
 	} else if (! _isRegistrationOpen) {
 		throw new TypeError('Cannot register new callbacks because registry is closed.');
@@ -340,3 +344,5 @@ export function on(event, callback, { capture = false, passive = false, once = f
 		return parts.map(([prop, val]) => `${prop}="${val}"`).join(' ');
 	}
 }
+
+globalThis.registry = registry;

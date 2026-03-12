@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.0.2] - 2026-03-11
+
+### Added
+- Add support for objects with a `handleEvent` property to be callbacks
+
 ## [v2.0.1] - 2026-03-06
 
 ### Changed
