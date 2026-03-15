@@ -344,5 +344,3 @@ export function on(event, callback, { capture = false, passive = false, once = f
 		return parts.map(([prop, val]) => `${prop}="${val}"`).join(' ');
 	}
 }
-
-globalThis.registry = registry;
