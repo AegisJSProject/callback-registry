@@ -1,6 +1,7 @@
 import '@shgysk8zer0/polyfills';
 import './shims.js';
-import { createCallback, unregisterCallback, hasCallback, callCallback, closeRegistration, registerCallback, CallbackRegistryKey } from '@aegisjsproject/callback-registry/callbacks.js';
+import { createCallback, unregisterCallback, hasCallback, callCallback, closeRegistration, registerCallback } from '@aegisjsproject/callback-registry/callbacks.js';
+import { RegistryKey } from '@aegisjsproject/disposable-registry';
 import { describe, test } from 'node:test';
 import assert from 'node:assert';
 
@@ -9,7 +10,7 @@ const sum = createCallback((...nums) => nums.reduce((sum, num) => sum + num));
 
 describe('Test callback registry', () => {
 	test('Creating a callback should return the string key.', { signal }, () => {
-		assert.ok(sum instanceof CallbackRegistryKey, 'Callback key should be a `CallbackRegistryKey`.');
+		assert.ok(sum instanceof RegistryKey, 'Callback key should be a `RegistryKey`.');
 	});
 
 	test('Callbacks are registered correctly', { signal }, () => {
@@ -26,9 +27,9 @@ describe('Test callback registry', () => {
 	});
 
 	test('Check callback registry with optional `stack`', { signal }, () => {
-		const stack = new DisposableStack();
-		const cb = registerCallback('disposable:log', console.log, { stack });
-		assert.ok(cb instanceof CallbackRegistryKey, 'Registering callbacks should return disposable String keys.');
+		using stack = new DisposableStack();
+		using cb = registerCallback('disposable:log', console.log, { stack });
+		assert.ok(cb instanceof RegistryKey, 'Registering callbacks should return disposable String keys.');
 		assert.ok(hasCallback(cb), 'Callback should be registered');
 		stack.dispose();
 		assert.ok(! hasCallback(cb), 'Callback should be unregistered after disposal.');

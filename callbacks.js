@@ -3,6 +3,10 @@ import {
 	registerEventAttribute, hasEventAttribute, registerSignal, abortController,
 } from './events.js';
 
+import {
+	Registry, RegistryKey, getFromRegistry, hasRegistryKey, registerKey, unregisterKey, listRegistryKeys,
+} from '@aegisjsproject/disposable-registry';
+
 let _isRegistrationOpen = true;
 
 const $$ = (selector, base = document) => base.querySelectorAll(selector);
@@ -56,9 +60,9 @@ export const FUNCS = {
 };
 
 /**
- * @type {Map<string, function>}
+ * @type {Registry<string, function>}
  */
-const registry = new Map([
+const registry = new Registry([
 	[FUNCS.debug.log, console.log],
 	[FUNCS.debug.warn, console.warn],
 	[FUNCS.debug.error, console.error],
@@ -170,11 +174,7 @@ const registry = new Map([
 	[FUNCS.ui.exitFullsceen, () => document.exitFullscreen()],
 ]);
 
-export class CallbackRegistryKey extends String {
-	[Symbol.dispose]() {
-		registry.delete(this.toString());
-	}
-}
+export const CallbackRegistryKey = RegistryKey;
 
 /**
  * Check if callback registry is open
@@ -195,7 +195,7 @@ export const closeRegistration = () => _isRegistrationOpen = false;
  *
  * @returns {Array} A frozen array listing keys to all registered callbacks
  */
-export const listCallbacks = () => Object.freeze(Array.from(registry.keys()));
+export const listCallbacks = () => listRegistryKeys(registry);
 
 /**
  * Check if a callback is registered
@@ -203,23 +203,23 @@ export const listCallbacks = () => Object.freeze(Array.from(registry.keys()));
  * @param {CallbackRegistryKey|string} name The name/key to check for in callback registry
  * @returns {boolean} Whether or not a callback is registered
  */
-export const hasCallback = name => registry.has(name?.toString());
+export const hasCallback = name => hasRegistryKey(name, registry);
 
 /**
  * Get a callback from the registry by name/key
  *
- * @param {CallbackRegistryKey|string} name The name/key of the callback to get
+ * @param {RegistryKey|string} name The name/key of the callback to get
  * @returns {Function|undefined} The corresponding function registered under that name/key
  */
-export const getCallback = name => registry.get(name?.toString());
+export const getCallback = name => getFromRegistry(name, registry);
 
 /**
  *	 Remove a callback from the registry
  *
- * @param {CallbackRegistryKey|string} name The name/key of the callback to get
+ * @param {RegistryKey|string} name The name/key of the callback to get
  * @returns {boolean} Whether or not the callback was successfully unregisterd
  */
-export const unregisterCallback = name => _isRegistrationOpen && registry.delete(name?.toString());
+export const unregisterCallback = name => _isRegistrationOpen && unregisterKey(name, registry);
 
 /**
  * Remove all callbacks from the registry
@@ -234,21 +234,21 @@ export const clearRegistry = () => registry.clear();
  * @param {Function} callback Callback function to register
  * @param {object} [config]
  * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
- * @returns {CallbackRegistryKey} The automatically generated key/name of the registered callback
+ * @returns {RegistryKey} The automatically generated key/name of the registered callback
  */
 export const createCallback = (callback, { stack } = {}) => registerCallback('aegis:callback:' + crypto.randomUUID(), callback, { stack });
 
 /**
  * Call a callback fromt the registry by name/key
  *
- * @param {CallbackRegistryKey|string} name The name/key of the registered function
+ * @param {RegistryKey|string} name The name/key of the registered function
  * @param  {...any} args Any arguments to pass along to the function
  * @returns {any} Whatever the return value of the function is
  * @throws {Error} Throws if callback is not found or any error resulting from calling the function
  */
 export function callCallback(name, ...args) {
-	if (registry.has(name?.toString())) {
-		return registry.get(name?.toString()).apply(this || globalThis, args);
+	if (hasRegistryKey(name, registry)) {
+		return getFromRegistry(name, registry)?.apply?.(this || globalThis, args);
 	} else {
 		throw new Error(`No ${name} function registered.`);
 	}
@@ -257,16 +257,16 @@ export function callCallback(name, ...args) {
 /**
  * Register a named callback in registry
  *
- * @param {CallbackRegistryKey|string} name The name/key to register the callback under
+ * @param {RegistryKey|string} name The name/key to register the callback under
  * @param {Function} callback The callback value to register
  * @param {object} config
  * @param {DisposableStack|AsyncDisposableStack} [config.stack] Optional `DisposableStack` to handle disposal and unregistering.
- * @returns {CallbackRegistryKey} The registered name/key
+ * @returns {RegistryKey} The registered name/key
  */
 export function registerCallback(name, callback, { stack } = {}) {
 	if (typeof name === 'string') {
-		return registerCallback(new CallbackRegistryKey(name), callback, { stack });
-	} else if (! (name instanceof CallbackRegistryKey)) {
+		return registerCallback(new RegistryKey(name), callback, { stack });
+	} else if (! (name instanceof RegistryKey)) {
 		throw new TypeError('Callback name must be a disposable string/CallbackRegistryKey.');
 	} else if (typeof callback === 'object' && typeof callback.handleEvent === 'function') {
 		return registerCallback(name, callback.handleEvent.bind(callback), { stack });
@@ -274,18 +274,12 @@ export function registerCallback(name, callback, { stack } = {}) {
 		throw new TypeError('Callback must be a function.');
 	} else if (! _isRegistrationOpen) {
 		throw new TypeError('Cannot register new callbacks because registry is closed.');
-	} else if (registry.has(name?.toString())) {
+	} else if (hasRegistryKey(name, registry)) {
 		throw new Error(`Handler "${name}" is already registered.`);
 	} else if (stack instanceof DisposableStack || stack instanceof AsyncDisposableStack) {
-		const key = stack.use(new CallbackRegistryKey(name));
-		registry.set(key.toString(), callback);
-
-		return key;
+		return stack.use(registerKey(name, callback, registry));
 	} else {
-		const key = new CallbackRegistryKey(name);
-		registry.set(key.toString(), callback);
-
-		return key;
+		return registerKey(name, callback, registry);
 	}
 }
 

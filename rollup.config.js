@@ -1,8 +1,10 @@
 import terser from '@rollup/plugin-terser';
 
+const external = ['@shgysk8zer0/signals', '@aegisjsproject/disposable-callbacks'];
+
 export default [{
 	input: 'callbackRegistry.js',
-	external: ['@shgysk8zer0/signals'],
+	external,
 	output: [{
 		file: 'callbackRegistry.cjs',
 		format: 'cjs',
@@ -14,7 +16,7 @@ export default [{
 	}],
 }, {
 	input: 'callbacks.js',
-	external: ['@shgysk8zer0/signals'],
+	external,
 	output: [{
 		file: 'callbacks.cjs',
 		format: 'cjs',
