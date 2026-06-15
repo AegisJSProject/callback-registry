@@ -26,7 +26,7 @@ A template repo for npm packages
 
 - [Code of Conduct](./.github/CODE_OF_CONDUCT.md)
 - [Contributing](./.github/CONTRIBUTING.md)
-<!-- - [Security Policy](./.github/SECURITY.md) -->
+- [Security Policy](./.github/SECURITY.md)
 
 A lightweight, modular JavaScript library for managing DOM events and callbacks. The library is designed for flexibility and efficiency, with a focus on leveraging modern JavaScript standards.
 

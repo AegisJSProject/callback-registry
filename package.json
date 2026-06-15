@@ -1,6 +1,6 @@
 {
   "name": "@aegisjsproject/callback-registry",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "description": " A callback registry for AegisJSProject",
   "keywords": [
     "aegis",
@@ -78,16 +78,19 @@
   "homepage": "https://github.com/AegisJSProject/callback-registry#readme",
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
-    "@shgysk8zer0/eslint-config": "^1.0.7",
-    "@shgysk8zer0/importmap": "^1.8.17",
-    "@shgysk8zer0/polyfills": "^0.6.2",
-    "@shgysk8zer0/rollup-import": "^2.0.3",
-    "eslint": "^10.0.3",
+    "@shgysk8zer0/eslint-config": "^1.1.0",
+    "@shgysk8zer0/importmap": "^1.10.1",
+    "@shgysk8zer0/polyfills": "^0.8.4",
+    "@shgysk8zer0/rollup-import": "^2.1.0",
+    "eslint": "^10.5.0",
     "http-server": "^14.1.1",
-    "rollup": "^4.59.0"
+    "rollup": "^4.62.0"
   },
   "dependencies": {
-    "@aegisjsproject/disposable-registry": "^1.0.2",
-    "@shgysk8zer0/signals": "^0.0.3"
+    "@aegisjsproject/disposable-registry": "^1.1.0",
+    "@shgysk8zer0/signals": "^0.1.0"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
   }
 }
